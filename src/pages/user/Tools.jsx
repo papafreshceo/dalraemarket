@@ -1,6 +1,7 @@
 // src/pages/user/Tools.jsx
 import { useState, useEffect } from 'react';
 import UserHeader from '../../components/layout/UserHeader';
+import ToolModal from '../../components/tools/ToolModal';
 
 function Tools() {
   const [hoveredTool, setHoveredTool] = useState(null);
@@ -8,6 +9,8 @@ function Tools() {
   const [searchTerm, setSearchTerm] = useState('');
   const [favorites, setFavorites] = useState(['margin-calculator', 'price-simulator']);
   const [isMobile, setIsMobile] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedTool, setSelectedTool] = useState(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -22,11 +25,11 @@ function Tools() {
   // 도구 카테고리
   const categories = [
     { id: 'all', name: '전체', count: 16 },
-    { id: 'essential', name: '핵심 도구', count: 4 },
+    { id: 'essential', name: '핵심 도구', count: 5 },
     { id: 'data', name: '데이터 관리', count: 3 },
-    { id: 'pricing', name: '가격 설정', count: 3 },
-    { id: 'analytics', name: '분석 도구', count: 3 },
-    { id: 'communication', name: '커뮤니케이션', count: 3 }
+    { id: 'pricing', name: '가격 설정', count: 4 },
+    { id: 'analytics', name: '분석 도구', count: 5 },
+    { id: 'communication', name: '커뮤니케이션', count: 1 }
   ];
 
   // SVG 아이콘 컴포넌트들
@@ -99,6 +102,26 @@ function Tools() {
     'competitor-monitor': (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z" fill="white"/>
+      </svg>
+    ),
+    'product-name-optimizer': (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="white"/>
+      </svg>
+    ),
+    'review-analyzer': (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM8.5 8C9.33 8 10 8.67 10 9.5C10 10.33 9.33 11 8.5 11C7.67 11 7 10.33 7 9.5C7 8.67 7.67 8 8.5 8ZM12 18C9.5 18 7.3 16.7 6.05 14.75C6.2 14.3 6.85 13.8 8.5 13C8.75 13.15 9.25 13.5 10 13.5C10.75 13.5 11.25 13.15 11.5 13C13.15 13.8 13.8 14.3 13.95 14.75C12.7 16.7 10.5 18 12 18ZM15.5 11C14.67 11 14 10.33 14 9.5C14 8.67 14.67 8 15.5 8C16.33 8 17 8.67 17 9.5C17 10.33 16.33 11 15.5 11Z" fill="white"/>
+      </svg>
+    ),
+    'price-recommender': (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13.41 18.09V20H10.74V18.07C9.03 17.71 7.58 16.61 7.47 14.67H9.43C9.53 15.82 10.39 16.7 12.08 16.7C13.98 16.7 14.54 15.64 14.54 14.93C14.54 14.04 14.08 13.37 12.31 12.95L10.46 12.52C8.55 12.08 7.51 10.87 7.51 9.14C7.51 7.17 8.96 5.94 10.74 5.58V4H13.41V5.6C15.27 6.04 16.27 7.38 16.37 9H14.41C14.35 7.96 13.65 7.22 12.08 7.22C10.58 7.22 9.75 7.91 9.75 8.88C9.75 9.73 10.29 10.29 11.89 10.67L13.48 11.05C15.69 11.55 16.78 12.62 16.78 14.65C16.77 16.79 15.35 17.72 13.41 18.09Z" fill="white"/>
+      </svg>
+    ),
+    'category-rank-checker': (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.5 21L2 9L4.5 9L7.5 16L10.5 9L13 9L7.5 21ZM17 3V13L22 13L17 21L17 13L12 13L17 3Z" fill="white"/>
       </svg>
     ),
     'search': (
@@ -239,6 +262,46 @@ function Tools() {
       usageCount: '445회/월',
       isNew: false,
       isPremium: true
+    },
+    {
+      id: 'product-name-optimizer',
+      category: 'essential',
+      name: '상품명 최적화 도구',
+      description: '검색 엔진 최적화를 고려한 효과적인 상품명 생성',
+      bgGradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+      usageCount: '1,023회/월',
+      isNew: true,
+      isPremium: false
+    },
+    {
+      id: 'review-analyzer',
+      category: 'analytics',
+      name: '리뷰 분석',
+      description: '고객 리뷰의 감정을 분석하고 대응 전략 제안',
+      bgGradient: 'linear-gradient(135deg, #a6c0fe 0%, #f68084 100%)',
+      usageCount: '756회/월',
+      isNew: true,
+      isPremium: false
+    },
+    {
+      id: 'price-recommender',
+      category: 'pricing',
+      name: '판매가/할인가 추천기',
+      description: '원가와 마진율을 고려한 최적의 판매 가격 추천',
+      bgGradient: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
+      usageCount: '1,567회/월',
+      isNew: false,
+      isPremium: false
+    },
+    {
+      id: 'category-rank-checker',
+      category: 'analytics',
+      name: '카테고리 순위 확인',
+      description: '각 플랫폼별 카테고리 내 상품 순위 실시간 확인',
+      bgGradient: 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)',
+      usageCount: '2,145회/월',
+      isNew: true,
+      isPremium: true
     }
   ];
 
@@ -257,6 +320,20 @@ function Tools() {
         ? prev.filter(id => id !== toolId)
         : [...prev, toolId]
     );
+  };
+
+  // 도구 클릭 핸들러
+  const handleToolClick = (tool) => {
+    console.log('Tool clicked:', tool); // 디버깅용
+    setSelectedTool(tool);
+    setModalOpen(true);
+  };
+
+  // 모달 닫기 핸들러
+  const handleCloseModal = () => {
+    console.log('Modal closing'); // 디버깅용
+    setModalOpen(false);
+    setSelectedTool(null);
   };
 
   // 즐겨찾기된 도구와 일반 도구 분리
@@ -450,6 +527,7 @@ function Tools() {
                     }}
                     onMouseEnter={() => setHoveredTool(tool.id)}
                     onMouseLeave={() => setHoveredTool(null)}
+                    onClick={() => handleToolClick(tool)}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
                       <div style={{
@@ -562,6 +640,7 @@ function Tools() {
                   }}
                   onMouseEnter={() => setHoveredTool(tool.id)}
                   onMouseLeave={() => setHoveredTool(null)}
+                  onClick={() => handleToolClick(tool)}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
                     <div style={{
@@ -688,6 +767,14 @@ function Tools() {
           </div>
         </div>
       </div>
+
+      {/* 도구 모달 */}
+      <ToolModal 
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        toolId={selectedTool?.id}
+        toolName={selectedTool?.name}
+      />
     </>
   );
 }

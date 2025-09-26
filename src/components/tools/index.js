@@ -13,6 +13,10 @@ import BarcodeGenerator from './BarcodeGenerator';
 import TransactionStatement from './TransactionStatement';
 import TrendAnalysis from './TrendAnalysis';
 import CompetitorMonitor from './CompetitorMonitor';
+import ProductNameOptimizer from './ProductNameOptimizer';
+import ReviewAnalyzer from './ReviewAnalyzer';
+import PriceRecommender from './PriceRecommender';
+import CategoryRankChecker from './CategoryRankChecker';
 
 // 도구 컴포넌트 맵
 export const toolComponents = {
@@ -27,7 +31,11 @@ export const toolComponents = {
   'barcode-generator': BarcodeGenerator,
   'transaction-statement': TransactionStatement,
   'trend-analysis': TrendAnalysis,
-  'competitor-monitor': CompetitorMonitor
+  'competitor-monitor': CompetitorMonitor,
+  'product-name-optimizer': ProductNameOptimizer,
+  'review-analyzer': ReviewAnalyzer,
+  'price-recommender': PriceRecommender,
+  'category-rank-checker': CategoryRankChecker
 };
 
 // 개별 export도 제공
@@ -43,5 +51,9 @@ export {
   BarcodeGenerator,
   TransactionStatement,
   TrendAnalysis,
-  CompetitorMonitor
+  CompetitorMonitor,
+  ProductNameOptimizer,
+  ReviewAnalyzer,
+  PriceRecommender,
+  CategoryRankChecker
 };
