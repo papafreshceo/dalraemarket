@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Search, Eye, CheckCircle, XCircle, Clock } from 'lucide-react'
-import './Orders.css'
+
 
 function Orders() {
   const [orders, setOrders] = useState([])
