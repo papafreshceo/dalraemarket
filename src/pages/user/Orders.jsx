@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import UserHeader from '../../components/layout/UserHeader';
 
-function OrderSystem() {
+function Orders() {
   const [orders, setOrders] = useState([
     { id: 1, orderNo: 'ORD-2024-0001', products: '양파 외 3건', amount: 580000, quantity: 120, status: 'registered', date: '2024-01-15', registeredAt: '2024-01-15 09:30' },
     { id: 2, orderNo: 'ORD-2024-0002', products: '토마토 외 5건', amount: 1250000, quantity: 200, status: 'confirmed', date: '2024-01-15', confirmedAt: '2024-01-15 10:15', paymentMethod: '계좌이체' },
@@ -1961,4 +1961,4 @@ function OrderSystem() {
   );
 }
 
-export default OrderSystem;
+export default Orders;
