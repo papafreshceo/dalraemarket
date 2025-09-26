@@ -17,7 +17,7 @@ function Login({ setAuth }) {
 
     // 임시 로그인 (나중에 Supabase 연동)
     setTimeout(() => {
-      if (email === 'admin@dallrae.com' && password === 'admin123') {
+      if (email === 'admin@dalrae.com' && password === '1234') {
         localStorage.setItem('auth_token', 'temp_token_123')
         setAuth(true)
         navigate('/dashboard')
@@ -46,7 +46,7 @@ function Login({ setAuth }) {
                 id="email"
                 type="email"
                 className="form-input"
-                placeholder="admin@dallrae.com"
+                placeholder="admin@dalrae.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -92,7 +92,7 @@ function Login({ setAuth }) {
 
           <div className="login-footer">
             <p className="test-account">
-              테스트 계정: admin@dallrae.com / admin123
+              테스트 계정: admin@dalrae.com / 1234
             </p>
           </div>
         </div>

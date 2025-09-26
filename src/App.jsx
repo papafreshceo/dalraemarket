@@ -1,55 +1,46 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import Dashboard from './pages/Dashboard'
-import Products from './pages/Products'
-import Orders from './pages/Orders'
-import Login from './pages/Login'
-import Layout from './components/Layout'
-import './App.css'
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ResponsiveProvider } from './contexts/ResponsiveProvider';
+import './styles/global.css';
+// App.css는 삭제하거나 필요한 부분만 global.css로 이동
+
+// Layouts
+import UserLayout from "./components/layout/UserLayout";
+import AdminLayout from "./components/layout/AdminLayout";
+
+// Admin 페이지들
+import Dashboard from "./pages/admin/Dashboard";
+import Products from "./pages/admin/Products";
+import Orders from "./pages/admin/orders";
+import Login from "./pages/admin/Login";
+
+// User 페이지
+import Home from "./pages/user/Home";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // 로그인 상태 확인 (나중에 Supabase 연동)
-    const checkAuth = () => {
-      const token = localStorage.getItem('auth_token')
-      setIsAuthenticated(!!token)
-      setLoading(false)
-    }
-    checkAuth()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner"></div>
-        <p>달래마켓 로딩중...</p>
-      </div>
-    )
-  }
-
   return (
-    <Router>
-      <Routes>
-        {isAuthenticated ? (
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="products" element={<Products />} />
-            <Route path="orders" element={<Orders />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    <ResponsiveProvider>
+      <Router>
+        <Routes>
+          {/* 사용자 페이지 - 레이아웃 적용 */}
+          <Route path="/" element={<UserLayout />}>
+            <Route index element={<Home />} />
+            <Route path="products" element={<div>상품 목록 페이지</div>} />
+            <Route path="cart" element={<div>장바구니 페이지</div>} />
+            <Route path="about" element={<div>소개 페이지</div>} />
           </Route>
-        ) : (
-          <>
-            <Route path="/login" element={<Login setAuth={setIsAuthenticated} />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </>
-        )}
-      </Routes>
-    </Router>
-  )
+          
+          {/* 로그인 (레이아웃 없음) */}
+          <Route path="/login" element={<Login />} />
+          
+          {/* 관리자 페이지 */}
+          <Route path="/admin" element={<Dashboard />} />
+          <Route path="/admin/products" element={<Products />} />
+          <Route path="/admin/orders" element={<Orders />} />
+        </Routes>
+      </Router>
+    </ResponsiveProvider>
+  );
 }
 
-export default App
+export default App;
