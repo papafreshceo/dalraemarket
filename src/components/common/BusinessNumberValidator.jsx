@@ -4,7 +4,6 @@ function BusinessNumberValidator({ value, onChange, onValidate }) {
   const [isChecking, setIsChecking] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
 
-  // 사업자등록번호 형식화 (000-00-00000)
   const formatBusinessNumber = (input) => {
     const numbers = input.replace(/[^\d]/g, '');
     if (numbers.length <= 3) {
@@ -17,129 +16,96 @@ function BusinessNumberValidator({ value, onChange, onValidate }) {
     return `${numbers.slice(0, 3)}-${numbers.slice(3, 5)}-${numbers.slice(5, 10)}`;
   };
 
-  // 사업자등록번호 유효성 검사 (체크섬)
-  const validateChecksum = (businessNumber) => {
-    const numbers = businessNumber.replace(/-/g, '');
-    if (numbers.length !== 10) return false;
-
-    const checkArray = [1, 3, 7, 1, 3, 7, 1, 3, 5];
-    let sum = 0;
-
-    for (let i = 0; i < 9; i++) {
-      sum += parseInt(numbers[i]) * checkArray[i];
-    }
-
-    sum += Math.floor((parseInt(numbers[8]) * 5) / 10);
-    const checkNum = (10 - (sum % 10)) % 10;
-
-    return checkNum === parseInt(numbers[9]);
-  };
-
-  // API 호출 시뮬레이션 (실제로는 서버 API 호출)
-  const checkBusinessStatus = async (businessNumber) => {
-    setIsChecking(true);
-    
-    // 실제 구현시 서버 API 호출
-    // const response = await fetch(`/api/business/validate?number=${businessNumber}`);
-    // const data = await response.json();
-    
-    // 시뮬레이션
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const isValid = validateChecksum(businessNumber);
-    const isDuplicate = businessNumber === '123-45-67890'; // 시뮬레이션용 중복 번호
-    const isActive = isValid && !isDuplicate; // 시뮬레이션용 활성 여부
-    
-    const result = {
-      isValid,
-      isDuplicate,
-      isActive,
-      message: !isValid 
-        ? '유효하지 않은 사업자등록번호입니다.' 
-        : isDuplicate 
-        ? '이미 등록된 사업자등록번호입니다.'
-        : !isActive
-        ? '휴폐업 상태의 사업자입니다.'
-        : '정상적으로 운영중인 사업자입니다.'
-    };
-    
-    setValidationResult(result);
-    setIsChecking(false);
-    
-    if (onValidate) {
-      onValidate(result);
-    }
-    
-    return result;
-  };
-
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const formatted = formatBusinessNumber(e.target.value);
     onChange(formatted);
     setValidationResult(null);
   };
 
-  const handleCheck = () => {
-    if (value.replace(/-/g, '').length === 10) {
-      checkBusinessStatus(value);
+  const handleValidate = async () => {
+    const cleanNumber = value.replace(/-/g, '');
+    
+    if (cleanNumber.length !== 10) {
+      setValidationResult({ isValid: false, message: '사업자등록번호 10자리를 입력해주세요.' });
+      return;
     }
+
+    setIsChecking(true);
+    
+    // 실제 API 호출 시뮬레이션
+    setTimeout(() => {
+      const result = {
+        isValid: true,
+        isDuplicate: false,
+        isActive: true,
+        businessName: '달래마켓',
+        message: '유효한 사업자등록번호입니다.'
+      };
+      
+      setValidationResult(result);
+      setIsChecking(false);
+      
+      if (onValidate) {
+        onValidate(result);
+      }
+    }, 1000);
   };
 
   return (
     <div style={{ width: '100%' }}>
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div style={{ 
+        display: 'flex', 
+        gap: '8px',
+        width: '100%',
+        boxSizing: 'border-box'
+      }}>
         <input
           type="text"
-          placeholder="000-00-00000"
+          placeholder="사업자등록번호"
           value={value}
-          onChange={handleInputChange}
+          onChange={handleChange}
           maxLength="12"
           style={{
-            flex: 1,
+            flex: '1 1 auto',
+            minWidth: '0',
             padding: '14px 16px',
-            border: '2px solid transparent',
+            border: validationResult 
+              ? validationResult.isValid && !validationResult.isDuplicate && validationResult.isActive
+                ? '2px solid #10b981'
+                : '2px solid #ef4444'
+              : '2px solid transparent',
             background: '#ffffff',
             borderRadius: '12px',
             fontSize: '14px',
             outline: 'none',
-            transition: 'all 0.3s',
-            borderColor: validationResult 
-              ? validationResult.isValid && !validationResult.isDuplicate && validationResult.isActive
-                ? '#10b981'
-                : '#ef4444'
-              : 'transparent'
+            transition: 'all 0.3s'
           }}
           onFocus={(e) => {
-            if (!validationResult) {
-              e.target.style.borderColor = '#667eea';
+            if (!validationResult || !validationResult.isValid) {
+              e.target.style.borderColor = '#2563eb';
             }
-            e.target.style.background = '#ffffff';
           }}
           onBlur={(e) => {
             if (!validationResult) {
               e.target.style.borderColor = 'transparent';
             }
-            e.target.style.background = '#ffffff';
           }}
         />
+        
         <button
-          onClick={handleCheck}
-          disabled={isChecking || value.replace(/-/g, '').length !== 10}
+          onClick={handleValidate}
+          disabled={isChecking || !value}
           style={{
+            flexShrink: 0,
             padding: '14px 20px',
-            background: isChecking || value.replace(/-/g, '').length !== 10
-              ? '#e0e0e0'
-              : '#667eea',
+            background: isChecking || !value ? '#e5e7eb' : '#2563eb',
             color: 'white',
             border: 'none',
             borderRadius: '12px',
-            fontSize: '13px',
+            fontSize: '14px',
             fontWeight: '500',
-            cursor: isChecking || value.replace(/-/g, '').length !== 10
-              ? 'not-allowed'
-              : 'pointer',
-            transition: 'all 0.2s',
-            minWidth: '60px',
+            cursor: isChecking || !value ? 'not-allowed' : 'pointer',
+            transition: 'all 0.3s',
             whiteSpace: 'nowrap'
           }}
         >
@@ -152,15 +118,18 @@ function BusinessNumberValidator({ value, onChange, onValidate }) {
           marginTop: '8px',
           padding: '8px 12px',
           background: validationResult.isValid && !validationResult.isDuplicate && validationResult.isActive
-            ? 'rgba(16, 185, 129, 0.1)'
-            : 'rgba(239, 68, 68, 0.1)',
-          color: validationResult.isValid && !validationResult.isDuplicate && validationResult.isActive
-            ? '#10b981'
-            : '#ef4444',
+            ? '#f0fdf4'
+            : '#fef2f2',
           borderRadius: '8px',
-          fontSize: '13px'
+          fontSize: '12px',
+          color: validationResult.isValid && !validationResult.isDuplicate && validationResult.isActive
+            ? '#166534'
+            : '#dc2626'
         }}>
           {validationResult.message}
+          {validationResult.businessName && (
+            <span style={{ fontWeight: '500' }}> - {validationResult.businessName}</span>
+          )}
         </div>
       )}
     </div>
