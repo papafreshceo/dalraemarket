@@ -1,6 +1,7 @@
-// src/components/layout/UserHeader.jsx
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import BusinessNumberValidator from './BusinessNumberValidator';
+import AddressSearch from './AddressSearch';
 
 function UserHeader() {
   const location = useLocation();
@@ -17,6 +18,17 @@ function UserHeader() {
   const [showGooglePopup, setShowGooglePopup] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showSubmenu, setShowSubmenu] = useState(null);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [isSeller, setIsSeller] = useState(false);
+  const [businessData, setBusinessData] = useState({
+    businessName: '',
+    businessNumber: '',
+    address: '',
+    representative: ''
+  });
   const termsRef = useRef(null);
   const formContainerRef = useRef(null);
 
@@ -46,11 +58,40 @@ function UserHeader() {
   }, [location]);
 
   const navItems = [
-    { path: '/products', text: '공급상품' },
-    { path: '/market', text: '시세정보' },
-    { path: '/delivery', text: '발송캘린더' },
+    { 
+      path: '/products', 
+      text: '공급상품',
+      hasSubmenu: true,
+      submenu: [
+        { path: '/products/all', text: '전체상품' },
+        { path: '/products/calendar', text: '상품캘린더' },
+        { path: '/products/images', text: '이미지다운로드' }
+      ]
+    },
     { path: '/orders', text: '발주시스템' },
-    { path: '/tools', text: '업무도구' },
+    { 
+      path: '/tools', 
+      text: '업무도구',
+      hasSubmenu: true,
+      submenu: [
+        { path: '/tools/margin-calculator', text: '마진계산기' },
+        { path: '/tools/price-simulator', text: '판매가 시뮬레이터' },
+        { path: '/tools/order-integration', text: '주문통합 (Excel)' },
+        { path: '/tools/option-pricing', text: '옵션가 세팅' },
+        { path: '/tools/inventory-tracker', text: '재고 추적기' },
+        { path: '/tools/discount-calculator', text: '할인율 계산기' },
+        { path: '/tools/sales-analytics', text: '매출 분석' },
+        { path: '/tools/customer-message', text: '고객 메시지' },
+        { path: '/tools/barcode-generator', text: '바코드 생성기' },
+        { path: '/tools/transaction-statement', text: '거래명세서 즉시 발급' },
+        { path: '/tools/trend-analysis', text: '트렌드 분석' },
+        { path: '/tools/competitor-monitor', text: '경쟁사 모니터링' },
+        { path: '/tools/product-name-optimizer', text: '상품명 최적화 도구' },
+        { path: '/tools/review-analyzer', text: '리뷰 분석' },
+        { path: '/tools/price-recommender', text: '판매가/할인가 추천기' },
+        { path: '/tools/category-rank-checker', text: '카테고리 순위 확인' }
+      ]
+    },
     { path: '/pricing', text: '요금제' },
     { path: '/winwin', text: 'Win-Win', special: true },
     { path: '/notice', text: '공지사항' },
@@ -110,6 +151,46 @@ function UserHeader() {
     { email: 'gomdolllll', domain: 'syey1744@gmail.com', avatar: '🏔️' },
     { email: 'papa fresh (파파프레시)', domain: 'papafresh.ceo@gmail.com', avatar: '🍑' }
   ];
+
+  // 터치 이벤트 핸들러 추가
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    // 스와이프 중 처리 필요시 추가
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    
+    if (Math.abs(diff) > 50) { // 50px 이상 스와이프시
+      if (diff > 0) {
+        // 왼쪽으로 스와이프 - 다음 카드
+        handleNextCard();
+      } else {
+        // 오른쪽으로 스와이프 - 이전 카드
+        handlePrevCard();
+      }
+    }
+  };
+
+  const handleNextCard = () => {
+    if (!isAnimating) {
+      setIsAnimating(true);
+      setCurrentCardIndex((prev) => (prev + 1) % navItems.length);
+      setTimeout(() => setIsAnimating(false), 500);
+    }
+  };
+
+  const handlePrevCard = () => {
+    if (!isAnimating) {
+      setIsAnimating(true);
+      setCurrentCardIndex((prev) => (prev - 1 + navItems.length) % navItems.length);
+      setTimeout(() => setIsAnimating(false), 500);
+    }
+  };
 
   // 모바일 Bottom Sheet 모달
   const MobileAuthModal = () => {
@@ -590,7 +671,7 @@ function UserHeader() {
   if (isMobile) {
     return (
       <>
-        
+        <div style={{ height: '70px' }} />
         <header style={{
           position: 'fixed',
           top: 0,
@@ -664,51 +745,6 @@ function UserHeader() {
                     0% { left: -100%; }
                     20% { left: 100%; }
                     100% { left: 100%; }
-                  }
-                  @keyframes slideToBack {
-                    0% {
-                      transform: translateX(0) scale(1);
-                      z-index: 10;
-                    }
-                    50% {
-                      transform: translateX(-50%) scale(0.95);
-                    }
-                    100% {
-                      transform: translateX(0) scale(0.9);
-                      z-index: 1;
-                    }
-                  }
-                  @keyframes slideToFront {
-                    0% {
-                      transform: translateX(0) scale(0.9);
-                      z-index: 1;
-                    }
-                    100% {
-                      transform: translateX(0) scale(1);
-                      z-index: 10;
-                    }
-                  }
-                  @keyframes flipToBack {
-                    0% {
-                      transform: translateY(0) rotateX(0deg) scale(1);
-                      z-index: 20;
-                    }
-                    50% {
-                      transform: translateY(-30px) rotateX(-15deg) scale(0.95);
-                      z-index: 20;
-                    }
-                    100% {
-                      transform: translateY(0) rotateX(0deg) scale(0.92);
-                      z-index: 1;
-                    }
-                  }
-                  @keyframes comeToFront {
-                    0% {
-                      transform: translateY(0) scale(0.92);
-                    }
-                    100% {
-                      transform: translateY(0) scale(1);
-                    }
                   }
                 `}</style>
               </button>
@@ -1011,7 +1047,7 @@ function UserHeader() {
   // PC 헤더
   return (
     <>
-
+      <div style={{ height: '70px' }} />
       <header style={{
         position: 'fixed',
         top: 0,
@@ -1041,18 +1077,244 @@ function UserHeader() {
 
             <nav style={{ display: 'flex', gap: '24px' }}>
               {navItems.map(item => (
-                <Link
+                <div 
                   key={item.path}
-                  to={item.path}
-                  style={{
-                    fontSize: '14px',
-                    color: isActive(item.path) ? '#2563eb' : '#212529',
-                    fontWeight: isActive(item.path) ? '600' : '400',
-                    textDecoration: 'none'
-                  }}
+                  style={{ position: 'relative' }}
+                  onMouseEnter={() => item.hasSubmenu && setShowSubmenu(item.path)}
+                  onMouseLeave={() => setShowSubmenu(null)}
                 >
-                  {item.text}
-                </Link>
+                  <Link
+                    to={item.path}
+                    style={{
+                      fontSize: '14px',
+                      color: isActive(item.path) ? '#2563eb' : '#212529',
+                      fontWeight: isActive(item.path) ? '600' : '400',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    {item.text}
+                    {item.hasSubmenu && (
+                      <svg 
+                        width="10" 
+                        height="6" 
+                        viewBox="0 0 10 6" 
+                        fill="none" 
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{ opacity: 0.6 }}
+                      >
+                        <path 
+                          d="M1 1L5 5L9 1" 
+                          stroke="currentColor" 
+                          strokeWidth="1.5" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </Link>
+                  
+                  {/* 하위메뉴 드롭다운 */}
+                  {item.hasSubmenu && showSubmenu === item.path && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: item.text === '업무도구' ? 0 : 0,
+                      marginTop: '8px',
+                      background: 'white',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                      border: '1px solid #e0e0e0',
+                      minWidth: item.text === '업무도구' ? '600px' : '200px',
+                      maxHeight: '400px',
+                      overflowY: 'auto',
+                      zIndex: 1001,
+                      padding: item.text === '업무도구' ? '16px' : '0'
+                    }}>
+                      {item.text === '업무도구' ? (
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(3, 1fr)',
+                          gap: '0'
+                        }}>
+                          {item.submenu.map(subItem => {
+                            // 각 도구별 SVG 아이콘
+                            const toolIcons = {
+                              '/tools/margin-calculator': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor"/>
+                                  <path d="M11 7h2v2h-2zm0 4h2v6h-2z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/price-simulator': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M3 13h2l3 4 4-10 3 6h2v2h-2l-3-6-4 10-3-4H3z" fill="currentColor"/>
+                                  <path d="M19 3h2v9h-2zm-4 5h2v4h-2zm-4 2h2v2h-2z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/order-integration': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z" fill="currentColor"/>
+                                  <path d="M7 7h4v4H7zm6 0h4v4h-4zm-6 6h4v4H7zm6 0h4v4h-4z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/option-pricing': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M12 2L2 7v4c0 5.55 3.84 10.74 9 11.97V20.9C6.91 19.74 4 15.53 4 11.22V8.3L12 4.19l8 4.11v2.92c0 1.24-.2 2.43-.57 3.55l1.74 1.73c.53-1.64.83-3.4.83-5.28V7l-10-5z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/inventory-tracker': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M12 2L2 7l10 5 10-5-10-5z" fill="currentColor"/>
+                                  <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                              ),
+                              '/tools/discount-calculator': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M12.5 6.9c-.73-.57-1.64-.9-2.65-.9-2.76 0-5 2.24-5 5s2.24 5 5 5c1.01 0 1.92-.33 2.65-.9.73.57 1.64.9 2.65.9 2.76 0 5-2.24 5-5s-2.24-5-5-5c-1.01 0-1.92.33-2.65.9z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/sales-analytics': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M5 9.2h3V19H5zm5.6-4.2h2.8V19h-2.8zm5.6 8H19v6h-2.8z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/customer-message': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" fill="currentColor"/>
+                                  <path d="M7 9h10v2H7zm0-3h10v2H7zm0 6h7v2H7z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/barcode-generator': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M2 6h2v12H2zm3 0h1v12H5zm2 0h3v12H7zm4 0h1v12h-1zm3 0h2v12h-2zm3 0h1v12h-1zm2 0h3v12h-3z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/transaction-statement': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z" fill="currentColor"/>
+                                  <path d="M8 12h8v1.5H8zm0 3h8v1.5H8zm0-6h8v1.5H8z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/trend-analysis': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/competitor-monitor': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/product-name-optimizer': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/review-analyzer': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M12 2C6.47 2 2 6.48 2 12s4.47 10 11.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM8.5 8c.83 0 1.5.67 1.5 1.5S9.33 11 8.5 11 7 10.33 7 9.5 7.67 8 8.5 8zm3.5 10c-2.5 0-4.7-1.3-5.95-3.25.15-.45.8-.95 2.45-1.75.25.15.75.5 1.5.5s1.25-.35 1.5-.5c1.65.8 2.3 1.3 2.45 1.75C16.7 16.7 14.5 18 12 18zm3.5-7c-.83 0-1.5-.67-1.5-1.5S14.67 8 15.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/price-recommender': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.15.96 2.03 2.65 2.03 1.9 0 2.46-1.06 2.46-1.77 0-.89-.46-1.56-2.23-1.98l-1.85-.43c-1.91-.44-2.95-1.65-2.95-3.38 0-1.97 1.45-3.2 3.23-3.56V4h2.67v1.6c1.86.44 2.86 1.78 2.96 3.4h-1.96c-.06-1.04-.76-1.78-2.33-1.78-1.5 0-2.33.69-2.33 1.66 0 .85.54 1.41 2.14 1.79l1.59.38c2.21.5 3.3 1.57 3.3 3.6-.01 2.14-1.43 3.07-3.37 3.44z" fill="currentColor"/>
+                                </svg>
+                              ),
+                              '/tools/category-rank-checker': (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                  <path d="M7.5 21L2 9l2.5 0 3 7 3-7 2.5 0L7.5 21zM17 3v10h5l-5 8V11h-5l5-8z" fill="currentColor"/>
+                                </svg>
+                              )
+                            };
+                            
+                            return (
+                              <Link
+                                key={subItem.path}
+                                to={subItem.path}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  padding: '8px 12px',
+                                  fontSize: '13px',
+                                  color: '#212529',
+                                  textDecoration: 'none',
+                                  transition: 'all 0.2s',
+                                  borderRadius: '4px'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#f8f9fa';
+                                  e.currentTarget.style.color = '#2563eb';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.color = '#212529';
+                                }}
+                              >
+                                {toolIcons[subItem.path]}
+                                <span>{subItem.text}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        item.submenu.map(subItem => {
+                          // 공급상품 메뉴 아이콘
+                          const productIcons = {
+                            '/products/all': (
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" fill="currentColor"/>
+                              </svg>
+                            ),
+                            '/products/calendar': (
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z" fill="currentColor"/>
+                                <path d="M7 10h5v5H7z" fill="currentColor"/>
+                              </svg>
+                            ),
+                            '/products/images': (
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="currentColor"/>
+                                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                              </svg>
+                            )
+                          };
+                          
+                          return (
+                            <Link
+                              key={subItem.path}
+                              to={subItem.path}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '10px 16px',
+                                fontSize: '13px',
+                                color: '#212529',
+                                textDecoration: 'none',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#f8f9fa';
+                                e.currentTarget.style.color = '#2563eb';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = '#212529';
+                              }}
+                            >
+                              {productIcons[subItem.path]}
+                              <span>{subItem.text}</span>
+                            </Link>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </div>
               ))}
             </nav>
           </div>
@@ -1228,80 +1490,165 @@ function UserHeader() {
 
                 <input type="email" placeholder="이메일" style={{
                   width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '8px',
+                  padding: '14px 16px',
+                  border: '2px solid transparent',
+                  background: '#f8f9fa',
+                  borderRadius: '12px',
                   fontSize: '14px',
-                  marginBottom: '12px'
+                  marginBottom: '12px',
+                  outline: 'none',
+                  transition: 'all 0.3s'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#2563eb';
+                  e.target.style.background = '#ffffff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'transparent';
+                  e.target.style.background = '#f8f9fa';
                 }} />
                 
                 <input type="password" placeholder="비밀번호" style={{
                   width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '8px',
+                  padding: '14px 16px',
+                  border: '2px solid transparent',
+                  background: '#f8f9fa',
+                  borderRadius: '12px',
                   fontSize: '14px',
-                  marginBottom: '24px'
+                  marginBottom: '24px',
+                  outline: 'none',
+                  transition: 'all 0.3s'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#2563eb';
+                  e.target.style.background = '#ffffff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'transparent';
+                  e.target.style.background = '#f8f9fa';
                 }} />
 
                 <button style={{
                   width: '100%',
-                  padding: '12px',
-                  background: '#2563eb',
+                  padding: '14px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   fontSize: '14px',
                   fontWeight: '500',
                   cursor: 'pointer',
-                  marginBottom: '16px'
-                }}>로그인</button>
+                  marginBottom: '24px',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  transition: 'transform 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                  이메일로 로그인
+                </button>
 
                 <div style={{ marginBottom: '24px' }}>
-                  <div style={{ position: 'relative', textAlign: 'center', marginBottom: '20px' }}>
-                    <div style={{ position: 'absolute', top: '50%', width: '100%', height: '1px', background: '#e0e0e0' }}></div>
-                    <span style={{ position: 'relative', background: 'white', padding: '0 12px', fontSize: '13px', color: '#666' }}>또는</span>
+                  <div style={{ position: 'relative', textAlign: 'center', marginBottom: '24px' }}>
+                    <div style={{ position: 'absolute', top: '50%', width: '100%', height: '1px', background: 'linear-gradient(to right, transparent, #e0e0e0, transparent)' }}></div>
+                    <span style={{ position: 'relative', background: 'white', padding: '0 16px', fontSize: '12px', color: '#9ca3af', fontWeight: '500' }}>간편 로그인</span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <button style={{
-                      flex: 1,
-                      padding: '10px',
+                      width: '100%',
+                      padding: '14px',
+                      background: '#ffffff',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+                    }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                      </svg>
+                      구글로 로그인
+                    </button>
+                    
+                    <button style={{
+                      width: '100%',
+                      padding: '14px',
                       background: '#FEE500',
                       border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      cursor: 'pointer'
-                    }}>카카오</button>
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'transform 0.2s',
+                      boxShadow: '0 2px 8px rgba(254, 229, 0, 0.3)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                      카카오로 로그인
+                    </button>
+                    
                     <button style={{
-                      flex: 1,
-                      padding: '10px',
+                      width: '100%',
+                      padding: '14px',
                       background: '#03C75A',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      cursor: 'pointer'
-                    }}>네이버</button>
-                    <button style={{
-                      flex: 1,
-                      padding: '10px',
-                      background: 'white',
-                      border: '1px solid #ddd',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      cursor: 'pointer'
-                    }}>구글</button>
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'transform 0.2s',
+                      boxShadow: '0 2px 8px rgba(3, 199, 90, 0.3)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                      네이버로 로그인
+                    </button>
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'center' }}>
-                  <span style={{ fontSize: '14px', color: '#666' }}>
-                    계정이 없으신가요?{' '}
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                  <a style={{
+                    fontSize: '13px',
+                    color: '#6b7280',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    marginRight: '16px'
+                  }}
+                  onMouseEnter={(e) => e.target.style.color = '#2563eb'}
+                  onMouseLeave={(e) => e.target.style.color = '#6b7280'}>
+                    비밀번호 찾기
+                  </a>
+                  <span style={{ fontSize: '13px', color: '#6b7280' }}>
+                    아직 계정이 없으신가요?{' '}
                     <a onClick={() => setModalMode('signup')} style={{
                       color: '#2563eb',
                       fontWeight: '500',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      textDecoration: 'none'
                     }}>회원가입</a>
                   </span>
                 </div>
@@ -1312,109 +1659,390 @@ function UserHeader() {
                   회원가입
                 </h2>
 
-                <input type="text" placeholder="이름" style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  marginBottom: '12px'
-                }} />
+                <input 
+                  type="text" 
+                  placeholder="이름 (한글만 입력)" 
+                  value={formData.name || ''}
+                  onChange={(e) => {
+                    const koreanOnly = e.target.value.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣ]/g, '');
+                    setFormData({ ...formData, name: koreanOnly });
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    border: '2px solid transparent',
+                    background: '#f8f9fa',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    marginBottom: '12px',
+                    outline: 'none',
+                    transition: 'all 0.3s'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#2563eb';
+                    e.target.style.background = '#ffffff';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'transparent';
+                    e.target.style.background = '#f8f9fa';
+                  }}
+                />
 
-                <input type="tel" placeholder="전화번호" style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  marginBottom: '12px'
-                }} />
+                <div style={{ position: 'relative', marginBottom: '12px' }}>
+                  <span style={{
+                    position: 'absolute',
+                    left: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    fontSize: '14px',
+                    color: '#495057',
+                    fontWeight: '500',
+                    pointerEvents: 'none'
+                  }}>010</span>
+                  <input 
+                    type="tel" 
+                    placeholder="0000-0000" 
+                    value={formData.phone || ''}
+                    onChange={(e) => {
+                      const numbers = e.target.value.replace(/[^\d]/g, '');
+                      if (numbers.length <= 4) {
+                        setFormData({ ...formData, phone: numbers });
+                      } else if (numbers.length <= 8) {
+                        setFormData({ ...formData, phone: `${numbers.slice(0, 4)}-${numbers.slice(4)}` });
+                      }
+                    }}
+                    maxLength="9"
+                    style={{
+                      width: '100%',
+                      padding: '14px 16px 14px 48px',
+                      border: '2px solid transparent',
+                      background: '#f8f9fa',
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      transition: 'all 0.3s'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#2563eb';
+                      e.target.style.background = '#ffffff';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'transparent';
+                      e.target.style.background = '#f8f9fa';
+                    }}
+                  />
+                </div>
                 
-                <input type="email" placeholder="이메일" style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  marginBottom: '12px'
-                }} />
+                <input 
+                  type="email" 
+                  placeholder="이메일" 
+                  value={formData.email || ''}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    border: '2px solid transparent',
+                    background: '#f8f9fa',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    marginBottom: '12px',
+                    outline: 'none',
+                    transition: 'all 0.3s'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#2563eb';
+                    e.target.style.background = '#ffffff';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'transparent';
+                    e.target.style.background = '#f8f9fa';
+                  }}
+                />
                 
-                <input type="password" placeholder="비밀번호" style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  marginBottom: '12px'
-                }} />
+                <input 
+                  type="password" 
+                  placeholder="비밀번호" 
+                  value={formData.password || ''}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    border: '2px solid transparent',
+                    background: '#f8f9fa',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    marginBottom: '12px',
+                    outline: 'none',
+                    transition: 'all 0.3s'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#2563eb';
+                    e.target.style.background = '#ffffff';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'transparent';
+                    e.target.style.background = '#f8f9fa';
+                  }}
+                />
 
-                <input type="password" placeholder="비밀번호 확인" style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  marginBottom: '24px'
-                }} />
+                <input 
+                  type="password" 
+                  placeholder="비밀번호 확인" 
+                  value={formData.passwordConfirm || ''}
+                  onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    border: '2px solid transparent',
+                    background: '#f8f9fa',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    marginBottom: '20px',
+                    outline: 'none',
+                    transition: 'all 0.3s'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#2563eb';
+                    e.target.style.background = '#ffffff';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'transparent';
+                    e.target.style.background = '#f8f9fa';
+                  }}
+                />
+
+                {/* 판매자로 가입하기 체크박스 */}
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '20px',
+                  padding: '16px',
+                  background: isSeller ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)' : '#f8f9fa',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  border: isSeller ? '2px solid #667eea' : '2px solid transparent',
+                  transition: 'all 0.3s'
+                }}>
+                  <div style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '6px',
+                    border: isSeller ? 'none' : '2px solid #dee2e6',
+                    background: isSeller ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.3s'
+                  }}>
+                    {isSeller && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/>
+                      </svg>
+                    )}
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={isSeller}
+                    onChange={(e) => setIsSeller(e.target.checked)}
+                    style={{ display: 'none' }}
+                  />
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: isSeller ? '#667eea' : '#495057'
+                  }}>
+                    판매자로 가입하기
+                  </span>
+                </label>
+
+                {/* 판매자 추가 정보 */}
+                {isSeller && (
+                  <div style={{
+                    padding: '20px',
+                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%)',
+                    borderRadius: '12px',
+                    marginBottom: '20px',
+                    border: '1px solid rgba(102, 126, 234, 0.2)'
+                  }}>
+                    <input 
+                      type="text" 
+                      placeholder="사업자명" 
+                      value={businessData.businessName || ''}
+                      onChange={(e) => setBusinessData({ ...businessData, businessName: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '14px 16px',
+                        border: '2px solid transparent',
+                        background: '#ffffff',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        marginBottom: '12px',
+                        outline: 'none',
+                        transition: 'all 0.3s'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#667eea';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = 'transparent';
+                      }}
+                    />
+
+                    <div style={{ marginBottom: '12px' }}>
+                      <BusinessNumberValidator 
+                        value={businessData.businessNumber}
+                        onChange={(value) => setBusinessData({ ...businessData, businessNumber: value })}
+                        onValidate={(result) => console.log('Validation result:', result)}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: '12px' }}>
+                      <AddressSearch 
+                        onAddressSelect={(addressData) => 
+                          setBusinessData({ ...businessData, address: addressData.fullAddress })
+                        }
+                      />
+                    </div>
+
+                    <input 
+                      type="text" 
+                      placeholder="대표자" 
+                      value={businessData.representative || ''}
+                      onChange={(e) => {
+                        const koreanOnly = e.target.value.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣ]/g, '');
+                        setBusinessData({ ...businessData, representative: koreanOnly });
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '14px 16px',
+                        border: '2px solid transparent',
+                        background: '#ffffff',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        transition: 'all 0.3s'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#667eea';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = 'transparent';
+                      }}
+                    />
+                  </div>
+                )}
 
                 <button style={{
                   width: '100%',
-                  padding: '12px',
-                  background: '#2563eb',
+                  padding: '14px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   fontSize: '14px',
                   fontWeight: '500',
                   cursor: 'pointer',
-                  marginBottom: '16px'
-                }}>회원가입</button>
+                  marginBottom: '24px',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  transition: 'transform 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                  회원가입
+                </button>
 
                 <div style={{ marginBottom: '24px' }}>
-                  <div style={{ position: 'relative', textAlign: 'center', marginBottom: '20px' }}>
-                    <div style={{ position: 'absolute', top: '50%', width: '100%', height: '1px', background: '#e0e0e0' }}></div>
-                    <span style={{ position: 'relative', background: 'white', padding: '0 12px', fontSize: '13px', color: '#666' }}>또는</span>
+                  <div style={{ position: 'relative', textAlign: 'center', marginBottom: '24px' }}>
+                    <div style={{ position: 'absolute', top: '50%', width: '100%', height: '1px', background: 'linear-gradient(to right, transparent, #e0e0e0, transparent)' }}></div>
+                    <span style={{ position: 'relative', background: 'white', padding: '0 16px', fontSize: '12px', color: '#9ca3af', fontWeight: '500' }}>간편 가입</span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <button style={{
-                      flex: 1,
-                      padding: '10px',
+                      width: '100%',
+                      padding: '14px',
+                      background: '#ffffff',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+                    }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                      </svg>
+                      구글로 시작하기
+                    </button>
+                    
+                    <button style={{
+                      width: '100%',
+                      padding: '14px',
                       background: '#FEE500',
                       border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      cursor: 'pointer'
-                    }}>카카오로 가입</button>
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'transform 0.2s',
+                      boxShadow: '0 2px 8px rgba(254, 229, 0, 0.3)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                      카카오로 시작하기
+                    </button>
+                    
                     <button style={{
-                      flex: 1,
-                      padding: '10px',
+                      width: '100%',
+                      padding: '14px',
                       background: '#03C75A',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      cursor: 'pointer'
-                    }}>네이버로 가입</button>
-                    <button style={{
-                      flex: 1,
-                      padding: '10px',
-                      background: 'white',
-                      border: '1px solid #ddd',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      cursor: 'pointer'
-                    }}>구글로 가입</button>
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'transform 0.2s',
+                      boxShadow: '0 2px 8px rgba(3, 199, 90, 0.3)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                      네이버로 시작하기
+                    </button>
                   </div>
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
-                  <span style={{ fontSize: '14px', color: '#666' }}>
+                  <span style={{ fontSize: '13px', color: '#6b7280' }}>
                     이미 계정이 있으신가요?{' '}
                     <a onClick={() => setModalMode('login')} style={{
                       color: '#2563eb',
                       fontWeight: '500',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      textDecoration: 'none'
                     }}>로그인</a>
                   </span>
                 </div>
