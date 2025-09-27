@@ -98,7 +98,7 @@ function BusinessNumberValidator({ value, onChange, onValidate }) {
             flex: 1,
             padding: '14px 16px',
             border: '2px solid transparent',
-            background: '#f8f9fa',
+            background: '#ffffff',
             borderRadius: '12px',
             fontSize: '14px',
             outline: 'none',
@@ -111,7 +111,7 @@ function BusinessNumberValidator({ value, onChange, onValidate }) {
           }}
           onFocus={(e) => {
             if (!validationResult) {
-              e.target.style.borderColor = '#2563eb';
+              e.target.style.borderColor = '#667eea';
             }
             e.target.style.background = '#ffffff';
           }}
@@ -119,29 +119,28 @@ function BusinessNumberValidator({ value, onChange, onValidate }) {
             if (!validationResult) {
               e.target.style.borderColor = 'transparent';
             }
-            e.target.style.background = '#f8f9fa';
+            e.target.style.background = '#ffffff';
           }}
         />
         <button
           onClick={handleCheck}
           disabled={isChecking || value.replace(/-/g, '').length !== 10}
           style={{
-            padding: '14px 24px',
+            padding: '14px 20px',
             background: isChecking || value.replace(/-/g, '').length !== 10
               ? '#e0e0e0'
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: isChecking || value.replace(/-/g, '').length !== 10
-              ? '#999'
-              : 'white',
+              : '#667eea',
+            color: 'white',
             border: 'none',
             borderRadius: '12px',
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: '500',
             cursor: isChecking || value.replace(/-/g, '').length !== 10
               ? 'not-allowed'
               : 'pointer',
             transition: 'all 0.2s',
-            minWidth: '80px'
+            minWidth: '60px',
+            whiteSpace: 'nowrap'
           }}
         >
           {isChecking ? '확인중...' : '조회'}

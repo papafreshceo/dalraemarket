@@ -1,78 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 function AddressSearch({ onAddressSelect }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState('');
   const [detailAddress, setDetailAddress] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const [fullAddress, setFullAddress] = useState('');
+  const embedRef = useRef(null);
 
-  // 주소 검색 API 시뮬레이션 (실제로는 다음 주소 API 등 사용)
-  const searchAddress = async (keyword) => {
-    if (!keyword.trim()) return;
-    
-    setIsSearching(true);
-    
-    // 실제 구현시 다음 주소 API 호출
-    // new daum.Postcode({...}).open();
-    
-    // 시뮬레이션 데이터
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const mockResults = [
-      {
-        id: 1,
-        roadAddress: '서울특별시 강남구 테헤란로 152',
-        jibunAddress: '서울특별시 강남구 역삼동 737',
-        zipCode: '06236',
-        buildingName: '강남파이낸스센터'
-      },
-      {
-        id: 2,
-        roadAddress: '서울특별시 강남구 테헤란로 142',
-        jibunAddress: '서울특별시 강남구 역삼동 736-1',
-        zipCode: '06236',
-        buildingName: '아크플레이스'
-      },
-      {
-        id: 3,
-        roadAddress: '서울특별시 강남구 테헤란로 134',
-        jibunAddress: '서울특별시 강남구 역삼동 735-3',
-        zipCode: '06235',
-        buildingName: '포스코타워 역삼'
+  useEffect(() => {
+    // Daum 주소 API 스크립트 동적 로드
+    const script = document.createElement('script');
+    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      const existingScript = document.querySelector('script[src*="daumcdn.net/mapjsapi/bundle/postcode"]');
+      if (existingScript) {
+        existingScript.remove();
       }
-    ].filter(item => 
-      item.roadAddress.includes(keyword) || 
-      item.jibunAddress.includes(keyword) ||
-      item.buildingName.includes(keyword)
-    );
-    
-    setSearchResults(mockResults);
-    setIsSearching(false);
-  };
+    };
+  }, []);
 
-  const handleSearch = (e) => {
-    if (e.key === 'Enter') {
-      searchAddress(searchKeyword);
+  useEffect(() => {
+    if (isOpen && window.daum && window.daum.Postcode && embedRef.current) {
+      // embed 방식으로 모달 안에 주소 검색 삽입
+      new window.daum.Postcode({
+        oncomplete: function(data) {
+          const addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+          setSelectedAddress(addr);
+        },
+        width: '100%',
+        height: '100%'
+      }).embed(embedRef.current);
     }
-  };
+  }, [isOpen]);
 
-  const handleSelectAddress = (address) => {
-    setSelectedAddress(address.roadAddress);
-    setSearchResults([]);
-    setSearchKeyword('');
-    setIsOpen(false);
-  };
-
-  const handleComplete = () => {
+  const handleConfirm = () => {
     if (selectedAddress && detailAddress) {
-      const fullAddress = `${selectedAddress} ${detailAddress}`;
+      const completeAddress = `${selectedAddress} ${detailAddress}`;
+      setFullAddress(completeAddress);
+      setIsOpen(false);
+      
       if (onAddressSelect) {
         onAddressSelect({
           basicAddress: selectedAddress,
           detailAddress: detailAddress,
-          fullAddress: fullAddress
+          fullAddress: completeAddress
         });
       }
     }
@@ -80,86 +54,39 @@ function AddressSearch({ onAddressSelect }) {
 
   return (
     <div style={{ width: '100%' }}>
-      {/* 기본 주소 입력 필드 */}
-      <div style={{ position: 'relative' }}>
-        <input
-          type="text"
-          placeholder="주소를 검색하세요"
-          value={selectedAddress}
-          readOnly
-          onClick={() => setIsOpen(true)}
-          style={{
-            width: '100%',
-            padding: '14px 16px',
-            border: '2px solid transparent',
-            background: '#f8f9fa',
-            borderRadius: '12px',
-            fontSize: '14px',
-            marginBottom: '12px',
-            outline: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.3s'
-          }}
-          onFocus={(e) => {
-            e.target.style.borderColor = '#2563eb';
-            e.target.style.background = '#ffffff';
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = 'transparent';
-            e.target.style.background = '#f8f9fa';
-          }}
-        />
-        
-        <button
-          onClick={() => setIsOpen(true)}
-          style={{
-            position: 'absolute',
-            right: '12px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            padding: '8px 16px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer'
-          }}
-        >
-          검색
-        </button>
-      </div>
-
-      {/* 상세 주소 입력 필드 */}
-      {selectedAddress && (
-        <input
-          type="text"
-          placeholder="상세주소를 입력하세요 (동/호수 등)"
-          value={detailAddress}
-          onChange={(e) => setDetailAddress(e.target.value)}
-          onBlur={handleComplete}
-          style={{
-            width: '100%',
-            padding: '14px 16px',
-            border: '2px solid transparent',
-            background: '#f8f9fa',
-            borderRadius: '12px',
-            fontSize: '14px',
-            outline: 'none',
-            transition: 'all 0.3s'
-          }}
-          onFocus={(e) => {
-            e.target.style.borderColor = '#2563eb';
-            e.target.style.background = '#ffffff';
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = 'transparent';
-            e.target.style.background = '#f8f9fa';
-            handleComplete();
-          }}
-        />
+      {/* 전체 주소 표시 (주소가 입력된 경우) */}
+      {fullAddress && (
+        <div style={{
+          padding: '12px 16px',
+          background: '#f8f9fa',
+          borderRadius: '12px',
+          fontSize: '14px',
+          color: '#495057',
+          marginBottom: '12px'
+        }}>
+          {fullAddress}
+        </div>
       )}
+
+      {/* 주소 검색 버튼만 표시 */}
+      <button
+        onClick={() => setIsOpen(true)}
+        style={{
+          width: '100%',
+          padding: '14px 20px',
+          background: '#2563eb',
+          color: 'white',
+          border: 'none',
+          borderRadius: '12px',
+          fontSize: '14px',
+          fontWeight: '500',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          marginBottom: '12px'
+        }}
+      >
+        주소 검색
+      </button>
 
       {/* 주소 검색 모달 */}
       {isOpen && (
@@ -177,7 +104,9 @@ function AddressSearch({ onAddressSelect }) {
         }} onClick={() => setIsOpen(false)}>
           <div style={{
             background: 'white',
-            width: '500px',
+            width: '90%',
+            maxWidth: '500px',
+            height: selectedAddress ? 'auto' : '70%',
             maxHeight: '600px',
             borderRadius: '16px',
             padding: '24px',
@@ -196,124 +125,121 @@ function AddressSearch({ onAddressSelect }) {
                 style={{
                   background: 'none',
                   border: 'none',
-                  fontSize: '20px',
+                  fontSize: '24px',
                   color: '#999',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  padding: '0',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
                 ×
               </button>
             </div>
 
-            {/* 검색 입력 */}
-            <div style={{ position: 'relative', marginBottom: '20px' }}>
-              <input
-                type="text"
-                placeholder="도로명, 건물명, 지번으로 검색"
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                onKeyPress={handleSearch}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '2px solid #2563eb',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  outline: 'none'
-                }}
-                autoFocus
-              />
-              <button
-                onClick={() => searchAddress(searchKeyword)}
-                disabled={isSearching}
-                style={{
-                  position: 'absolute',
-                  right: '8px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  padding: '8px 20px',
-                  background: isSearching ? '#e0e0e0' : '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  cursor: isSearching ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {isSearching ? '검색중...' : '검색'}
-              </button>
-            </div>
-
-            {/* 검색 결과 */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              border: '1px solid #e0e0e0',
-              borderRadius: '10px',
-              minHeight: '300px'
-            }}>
-              {searchResults.length === 0 ? (
+            {/* 카카오 주소 API embed 영역 또는 상세주소 입력 */}
+            {!selectedAddress ? (
+              <>
+                <div 
+                  ref={embedRef}
+                  style={{
+                    flex: 1,
+                    width: '100%',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '10px',
+                    overflow: 'hidden'
+                  }}
+                />
                 <div style={{
-                  padding: '40px',
-                  textAlign: 'center',
-                  color: '#999',
-                  fontSize: '14px'
+                  marginTop: '16px',
+                  padding: '12px',
+                  background: '#f8f9fa',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: '#6c757d',
+                  textAlign: 'center'
                 }}>
-                  {searchKeyword ? '검색 결과가 없습니다.' : '주소를 검색해주세요.'}
+                  도로명, 건물명, 지번으로 검색하세요
                 </div>
-              ) : (
-                searchResults.map((address) => (
-                  <div
-                    key={address.id}
-                    onClick={() => handleSelectAddress(address)}
+              </>
+            ) : (
+              <div>
+                {/* 선택된 기본 주소 표시 */}
+                <div style={{
+                  padding: '14px 16px',
+                  background: '#e7f3ff',
+                  borderRadius: '12px',
+                  fontSize: '14px',
+                  color: '#2563eb',
+                  marginBottom: '16px'
+                }}>
+                  <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>기본주소</div>
+                  {selectedAddress}
+                </div>
+
+                {/* 상세 주소 입력 */}
+                <input
+                  type="text"
+                  placeholder="상세주소를 입력하세요 (동/호수 등)"
+                  value={detailAddress}
+                  onChange={(e) => setDetailAddress(e.target.value)}
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    border: '2px solid #2563eb',
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    outline: 'none',
+                    marginBottom: '20px'
+                  }}
+                />
+
+                {/* 버튼 그룹 */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => {
+                      setSelectedAddress('');
+                      setDetailAddress('');
+                    }}
                     style={{
-                      padding: '16px',
-                      borderBottom: '1px solid #f1f3f5',
-                      cursor: 'pointer',
-                      transition: 'background 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#f8f9fa';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
+                      flex: 1,
+                      padding: '12px',
+                      background: '#f8f9fa',
+                      color: '#495057',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: 'pointer'
                     }}
                   >
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '4px'
-                    }}>
-                      <span style={{
-                        padding: '2px 6px',
-                        background: '#2563eb',
-                        color: 'white',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        fontWeight: '500'
-                      }}>
-                        {address.zipCode}
-                      </span>
-                      <span style={{
-                        fontSize: '14px',
-                        fontWeight: '500'
-                      }}>
-                        {address.roadAddress}
-                      </span>
-                    </div>
-                    <div style={{
-                      fontSize: '13px',
-                      color: '#6c757d'
-                    }}>
-                      {address.jibunAddress}
-                      {address.buildingName && ` (${address.buildingName})`}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                    다시 검색
+                  </button>
+                  <button
+                    onClick={handleConfirm}
+                    disabled={!detailAddress}
+                    style={{
+                      flex: 2,
+                      padding: '12px',
+                      background: detailAddress ? '#2563eb' : '#e0e0e0',
+                      color: detailAddress ? 'white' : '#999',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: detailAddress ? 'pointer' : 'not-allowed'
+                    }}
+                  >
+                    확인
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
